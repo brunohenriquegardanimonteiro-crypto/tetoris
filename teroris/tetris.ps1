@@ -136,7 +136,7 @@ function Play {
       $last = [DateTime]::Now
     }
     if ([Console]::KeyAvailable) {
-      $k = [Console]::ReadKey(True)
+      $k = [Console]::ReadKey($True)
       switch ($k.Key) {
         'LeftArrow' { if (CanPlace $cur ($px-1) $py) { $px--; Draw } }
         'RightArrow' { if (CanPlace $cur ($px+1) $py) { $px++; Draw } }
