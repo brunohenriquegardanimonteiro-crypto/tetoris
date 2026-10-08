@@ -105,7 +105,7 @@ if (-not $NoAudio) {
 function Play {
   try { [Console]::CursorVisible = $false } catch {}
   $idx = Get-Random -Max $pieces.Count
-  $cur = , ($pieces[$idx])
+$cur = $pieces[$idx]
   $px = 3; $py = 0
   $last = [DateTime]::Now
   $speed = 300
