@@ -22,20 +22,20 @@ function Write-At([int]$x, [int]$y, [string]$s) {
 }
 
 function Rotate([array]$p) {
-  $h = $p.Length; $w = $p[0].Length
+  $ph = $p.Length; $pw = $p[0].Length
   $res = @()
-  for ($y = 0; $y -lt $w; $y++) {
+  for ($y = 0; $y -lt $pw; $y++) {
     $row = @()
-    for ($x = 0; $x -lt $h; $x++) { $row += $p[$h-1-$x][$y] }
+    for ($x = 0; $x -lt $ph; $x++) { $row += $p[$ph-1-$x][$y] }
     $res += @(, $row)
   }
   return ,$res
 }
 
 function CanPlace([array]$p, [int]$px, [int]$py) {
-  $h = $p.Length; $w = $p[0].Length
-  for ($y = 0; $y -lt $h; $y++) {
-    for ($x = 0; $x -lt $w; $x++) {
+  $ph = $p.Length; $pw = $p[0].Length
+  for ($y = 0; $y -lt $ph; $y++) {
+    for ($x = 0; $x -lt $pw; $x++) {
       if ($p[$y][$x] -ne 0) {
         $nx = $px + $x; $ny = $py + $y
         if ($nx -lt 0 -or $nx -ge $W -or $ny -ge $H) { return $false }
@@ -47,9 +47,9 @@ function CanPlace([array]$p, [int]$px, [int]$py) {
 }
 
 function Merge([array]$p, [int]$px, [int]$py) {
-  $h = $p.Length; $w = $p[0].Length
-  for ($y = 0; $y -lt $h; $y++) {
-    for ($x = 0; $x -lt $w; $x++) {
+  $ph = $p.Length; $pw = $p[0].Length
+  for ($y = 0; $y -lt $ph; $y++) {
+    for ($x = 0; $x -lt $pw; $x++) {
       if ($p[$y][$x] -ne 0) { $field[($py+$y),($px+$x)] = 1 }
     }
   }
