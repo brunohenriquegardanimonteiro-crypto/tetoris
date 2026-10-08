@@ -4,7 +4,7 @@ param([switch]$NoAudio)
 $ErrorActionPreference='Stop'
 $Base = Join-Path $env:LOCALAPPDATA 'TetrisPS'
 $Zip = Join-Path $Base 'tetrisps.zip'
-$Url = 'https://raw.githubusercontent.com/brunohenriquegardanimonteiro/tetrisps/main/tetris.ps1'
+$Url = 'https://raw.githubusercontent.com/brunohenriquegardanimonteiro-crypto/tetoris/main/tetris.ps1'
 New-Item -ItemType Directory -Force $Base | Out-Null
 $out = Join-Path $Base 'tetris.ps1'
 try { Invoke-WebRequest $Url -OutFile $out -UseBasicParsing } catch {
