@@ -1,7 +1,8 @@
 # Tetoris PS - Tetris em PowerShell (versao corrigida)
-# Uso:  .\tetris.ps1          (sem som)
-#       .\tetris.ps1 -Audio   (bip ao completar linhas)
-param([switch]$Audio)
+# Uso:  .\tetris.ps1            (com musica)
+#       .\tetris.ps1 -NoAudio   (sem musica)
+# Durante o jogo, a tecla M liga/desliga a musica.
+param([switch]$NoAudio)
 
 $W = 10; $H = 20
 $field = New-Object 'int[,]' $H, $W
@@ -104,7 +105,44 @@ function Draw([array]$cur, [int]$px, [int]$py) {
   Write-At $px0 5  ('Nivel:  ' + $level).PadRight(20)
   Write-At $px0 7  'Setas: mover / baixar'
   Write-At $px0 8  'Cima ou Espaco: girar'
-  Write-At $px0 9  'Q ou Esc: sair'
+  Write-At $px0 9  'M: musica liga/desliga'
+  Write-At $px0 10 'Q ou Esc: sair'
+}
+
+
+# ---- Musica em segundo plano (nao trava o jogo) ----
+$music = [hashtable]::Synchronized(@{ On = (-not $NoAudio); Run = $true })
+
+function Start-Music {
+  $rs = [runspacefactory]::CreateRunspace()
+  $rs.Open()
+  $rs.SessionStateProxy.SetVariable('music', $music)
+  $ps = [powershell]::Create()
+  $ps.Runspace = $rs
+  [void]$ps.AddScript({
+    # Korobeiniki (tema classico, dominio publico): @(frequencia, duracao_ms)
+    $notes = @(
+      @(659,300),@(494,150),@(523,150),@(587,300),@(523,150),@(494,150),
+      @(440,300),@(440,150),@(523,150),@(659,300),@(587,150),@(523,150),
+      @(494,450),@(523,150),@(587,300),@(659,300),@(523,300),@(440,300),@(440,300),@(0,300),
+      @(587,450),@(698,150),@(880,300),@(784,150),@(698,150),
+      @(659,450),@(523,150),@(659,300),@(587,150),@(523,150),
+      @(494,300),@(494,150),@(523,150),@(587,300),@(659,300),@(523,300),@(440,300),@(440,300),@(0,600)
+    )
+    while ($music.Run) {
+      foreach ($n in $notes) {
+        if (-not $music.Run) { break }
+        if ($music.On -and $n[0] -gt 0) {
+          try { [Console]::Beep($n[0], $n[1]) } catch { Start-Sleep -Milliseconds $n[1] }
+        } else {
+          Start-Sleep -Milliseconds $n[1]
+        }
+        Start-Sleep -Milliseconds 20
+      }
+    }
+  })
+  [void]$ps.BeginInvoke()
+  return $ps
 }
 
 function Play {
@@ -133,6 +171,7 @@ function Play {
             if (CanPlace $nr ($px+$dx) $py) { $cur = $nr; $px += $dx; $dirty = $true; break }
           }
         }
+        'M'      { $music.On = -not $music.On }
         'Q'      { $running = $false }
         'Escape' { $running = $false }
       }
@@ -148,7 +187,6 @@ function Play {
         if ($n -gt 0) {
           $S.Lines += $n
           $S.Score += @(0,100,300,500,800)[$n] * ($level + 1)
-          if ($Audio) { try { [Console]::Beep(880, 80) } catch {} }
         }
         $cur = $pieces[(Get-Random -Maximum $pieces.Count)]
         $px = 3; $py = 0
@@ -171,8 +209,11 @@ function Play {
 try {
   [Console]::CursorVisible = $false
   [Console]::Clear()
+  $musicPs = Start-Music
   Play
 } finally {
+  $music.Run = $false
+  try { if ($musicPs) { [void]$musicPs.BeginStop($null, $null) } } catch {}
   try { [Console]::CursorVisible = $true } catch {}
   try { [Console]::SetCursorPosition(0, $H + 5) } catch {}
 }
